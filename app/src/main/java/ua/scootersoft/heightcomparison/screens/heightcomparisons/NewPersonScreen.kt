@@ -1,8 +1,17 @@
 package ua.scootersoft.heightcomparison.screens.heightcomparisons
 
+import android.Manifest
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
+import android.provider.MediaStore
 import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -13,20 +22,69 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.core.app.ActivityCompat.shouldShowRequestPermissionRationale
+import androidx.navigation.NavController
+import coil.compose.rememberAsyncImagePainter
+import coil.compose.rememberImagePainter
+import coil.request.ImageRequest
+import coil.size.Size
 import ua.scootersoft.heightcomparison.R
 import ua.scootersoft.heightcomparison.screens.heightcomparisons.model.Gender
 import ua.scootersoft.heightcomparison.utils.Constants.TALLEST_DP
+import ua.scootersoft.heightcomparison.utils.extensions.findActivity
 
 @ExperimentalMaterialApi
 @Composable
-fun NewPerson(viewModel: HeightComparisonViewModel) {
+fun NewPerson(
+    viewModel: HeightComparisonViewModel,
+    navController: NavController
+) {
+
     val nameState = remember { mutableStateOf("Name") }
     val heightCmState = remember { mutableStateOf(170) }
     val spinnerExpandedState = remember { mutableStateOf(false) }
-    var selectedGender = remember { mutableStateOf(Gender.MAN) }
+    val selectedGender = remember { mutableStateOf(Gender.MAN) }
+    val selectedUri = remember { mutableStateOf<String?>(null) }
+
+    val resultReadStorageLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            result.data?.data?.let { uri ->
+                Log.d("ImageClick", "NewPerson: $uri")
+                selectedUri.value = uri.toString()
+            }
+        }
+
+    val currentActivity = LocalContext.current.findActivity()
+
+    val galleryPermission =
+        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            when {
+                granted -> {
+                    val intent = Intent()
+                    intent.type = "image/*"
+                    intent.action = Intent.ACTION_GET_CONTENT
+                    resultReadStorageLauncher.launch(Intent.createChooser(intent, "Select Picture"))
+                }
+                shouldShowRequestPermissionRationale(currentActivity, Manifest.permission.READ_EXTERNAL_STORAGE).not() -> {
+                    Log.d("ImageClick", "Please select again permission")
+                }
+                else -> Log.d("ImageClick", "NewPerson: permission not granted")
+            }
+        }
+
+    val image = if (selectedUri.value.isNullOrBlank())
+        painterResource(id = R.drawable.ic_baseline_add_24)
+    else
+        rememberAsyncImagePainter(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(Uri.parse(selectedUri.value))
+                .size(Size.ORIGINAL)
+                .build()
+        )
 
     LazyColumn(modifier = Modifier.padding(top = 20.dp, start = 24.dp, end = 24.dp)) {
         item {
@@ -36,13 +94,29 @@ fun NewPerson(viewModel: HeightComparisonViewModel) {
         }
         item {
             Image(
-                painter = painterResource(id = R.drawable.ic_baseline_add_24),
+                painter = image,
                 contentDescription = "Add image",
-                modifier = Modifier
-                    .size(TALLEST_DP)
-                    .clickable {
-                        Log.d("ImageClick", "NewPerson: click on image")
-                    },
+                modifier = if (selectedUri.value.isNullOrBlank()) {
+                    Modifier
+                        .fillMaxWidth()
+                        .height(TALLEST_DP)
+                        .clickable {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                resultReadStorageLauncher.launch(Intent(MediaStore.ACTION_PICK_IMAGES))
+                            } else {
+                                galleryPermission.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
+                            }
+                        }
+                } else {
+                    Modifier
+                        .clickable {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                resultReadStorageLauncher.launch(Intent(MediaStore.ACTION_PICK_IMAGES))
+                            } else {
+                                galleryPermission.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
+                            }
+                        }
+                },
                 contentScale = ContentScale.FillBounds,
             )
         }
@@ -87,7 +161,8 @@ fun NewPerson(viewModel: HeightComparisonViewModel) {
         }
         item {
             Button(onClick = {
-                Log.d("ImageClick", "Add person click")
+                viewModel.addPerson(nameState.value, selectedUri.value, heightCmState.value, selectedGender.value)
+                navController.popBackStack()
             }) {
                 Text(text = "Add person")
             }

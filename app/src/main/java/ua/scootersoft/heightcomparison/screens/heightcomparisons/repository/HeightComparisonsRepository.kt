@@ -52,4 +52,20 @@ class HeightComparisonsRepository {
         _comparedPersonFlow.emit(comparedPerson)
     }
 
+    suspend fun addPerson(person: ComparedPerson) {
+        val newList = mutableListOf<ComparedPerson>()
+        newList.addAll(comparedPerson)
+        newList.add(person)
+        comparedPerson = newList
+        _comparedPersonFlow.emit(comparedPerson)
+    }
+
+    suspend fun removePerson(person: ComparedPerson) {
+        val newList = mutableListOf<ComparedPerson>()
+        newList.addAll(comparedPerson)
+        newList.remove(person)
+        comparedPerson = newList
+        _comparedPersonFlow.emit(comparedPerson)
+    }
+
 }

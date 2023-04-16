@@ -45,7 +45,7 @@ class MainActivity : ComponentActivity() {
                            EditScreen(viewModel)
                        }
                        composable("addNewPerson") {
-                           NewPerson(viewModel)
+                           NewPerson(viewModel, navController)
                        }
                    }
                 }

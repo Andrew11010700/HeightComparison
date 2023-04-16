@@ -1,5 +1,6 @@
 package ua.scootersoft.heightcomparison.screens
 
+import android.net.Uri
 import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -16,10 +17,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color.Companion.Black
 import androidx.compose.ui.graphics.Color.Companion.Yellow
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import coil.compose.rememberAsyncImagePainter
+import coil.compose.rememberImagePainter
+import coil.request.ImageRequest
+import coil.size.Size
 import ua.scootersoft.heightcomparison.screens.heightcomparisons.EditScreen
 import ua.scootersoft.heightcomparison.screens.heightcomparisons.HeightComparisonViewModel
 
@@ -34,13 +40,22 @@ fun HeightComparisonScreen(
         item {
             LazyRow {
                 items(items = comparedPeople) { item ->
-                    val image = painterResource(id = item.defaultImage)
+                    val image = if (item.imageUrl.isNullOrBlank())
+                        painterResource(id = item.defaultImage)
+                    else
+                        rememberAsyncImagePainter(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(Uri.parse(item.imageUrl))
+                                .size(Size.ORIGINAL)
+                                .build()
+                        )
+
                     val imageSize = image.intrinsicSize
 
                     val tallestPerson = comparedPeople.maxByOrNull { it.heightCm }
                     tallestPerson ?: return@items
 
-                    val itemView = viewModel.convertToComparedPersonView(item, tallestPerson, imageSize)
+                    val itemView = viewModel.convertToComparedPersonView(item, imageSize, tallestPerson)
 
                     Image(
                         painter = image,
