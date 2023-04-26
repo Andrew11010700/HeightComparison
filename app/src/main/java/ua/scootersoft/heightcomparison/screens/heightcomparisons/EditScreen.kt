@@ -9,13 +9,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
+import androidx.compose.material.Checkbox
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -30,8 +30,10 @@ import coil.size.Size
 fun EditScreen(viewModel: HeightComparisonViewModel) {
     val comparedPeople by viewModel.comparedPeople.collectAsState()
     Log.d("StateValue", "EditScreen: state = $comparedPeople")
+    val checkedStates = remember { comparedPeople.map { mutableStateOf(it.isShowPerson) } }
     LazyColumn(modifier = Modifier.padding(top = 20.dp, start = 24.dp, end = 24.dp)) {
-        items(comparedPeople) { item ->
+        itemsIndexed(comparedPeople) { index, item ->
+            checkedStates[index].value = item.isShowPerson
             val image = if (item.imageUrl.isNullOrBlank())
                 painterResource(id = item.defaultImage)
             else
@@ -62,6 +64,10 @@ fun EditScreen(viewModel: HeightComparisonViewModel) {
                         },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                     )
+                    Checkbox(checked = checkedStates[index].value, onCheckedChange = {
+                        item.isShowPerson = item.isShowPerson.not()
+                        checkedStates[index].value = item.isShowPerson
+                    })
                     Button(onClick = {
                         viewModel.removePerson(item)
                     }) {

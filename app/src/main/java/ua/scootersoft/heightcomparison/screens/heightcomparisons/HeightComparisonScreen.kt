@@ -39,7 +39,7 @@ fun HeightComparisonScreen(
 
         item {
             LazyRow {
-                items(items = comparedPeople) { item ->
+                items(items = comparedPeople.filter { it.isShowPerson }) { item ->
                     val image = if (item.imageUrl.isNullOrBlank())
                         painterResource(id = item.defaultImage)
                     else

@@ -1,10 +1,9 @@
 package ua.scootersoft.heightcomparison.screens.heightcomparisons
 
 import android.Manifest
-import android.content.Intent
+import android.app.Activity.RESULT_OK
 import android.net.Uri
 import android.os.Build
-import android.provider.MediaStore
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -13,7 +12,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
@@ -29,9 +27,9 @@ import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat.shouldShowRequestPermissionRationale
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
-import coil.compose.rememberImagePainter
 import coil.request.ImageRequest
 import coil.size.Size
+import com.theartofdev.edmodo.cropper.CropImage
 import ua.scootersoft.heightcomparison.R
 import ua.scootersoft.heightcomparison.screens.heightcomparisons.model.Gender
 import ua.scootersoft.heightcomparison.utils.Constants.TALLEST_DP
@@ -52,9 +50,10 @@ fun NewPerson(
 
     val resultReadStorageLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            result.data?.data?.let { uri ->
-                Log.d("ImageClick", "NewPerson: $uri")
-                selectedUri.value = uri.toString()
+            if (result.resultCode == RESULT_OK) {
+                val resultData = CropImage.getActivityResult(result.data)
+                val resultUri = resultData.uri
+                selectedUri.value = resultUri.toString()
             }
         }
 
@@ -64,10 +63,7 @@ fun NewPerson(
         rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
             when {
                 granted -> {
-                    val intent = Intent()
-                    intent.type = "image/*"
-                    intent.action = Intent.ACTION_GET_CONTENT
-                    resultReadStorageLauncher.launch(Intent.createChooser(intent, "Select Picture"))
+                    resultReadStorageLauncher.launch(CropImage.activity().getIntent(currentActivity))
                 }
                 shouldShowRequestPermissionRationale(currentActivity, Manifest.permission.READ_EXTERNAL_STORAGE).not() -> {
                     Log.d("ImageClick", "Please select again permission")
@@ -102,7 +98,11 @@ fun NewPerson(
                         .height(TALLEST_DP)
                         .clickable {
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                                resultReadStorageLauncher.launch(Intent(MediaStore.ACTION_PICK_IMAGES))
+                                resultReadStorageLauncher.launch(
+                                    CropImage
+                                        .activity()
+                                        .getIntent(currentActivity)
+                                )
                             } else {
                                 galleryPermission.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
                             }
@@ -111,7 +111,7 @@ fun NewPerson(
                     Modifier
                         .clickable {
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                                resultReadStorageLauncher.launch(Intent(MediaStore.ACTION_PICK_IMAGES))
+                                resultReadStorageLauncher.launch(CropImage.activity().getIntent(currentActivity))
                             } else {
                                 galleryPermission.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
                             }

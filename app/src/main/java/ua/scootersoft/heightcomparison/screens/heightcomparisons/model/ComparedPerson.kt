@@ -8,5 +8,6 @@ data class ComparedPerson(
     val gender: Gender,
     val name: String = "",
     val heightCm: Int = 170,
+    var isShowPerson: Boolean = true,
     val defaultImage: Int = if (gender == Gender.MAN) R.drawable.default_man else R.drawable.default_woman
 )
