@@ -52,6 +52,17 @@ class HeightComparisonsRepository {
         _comparedPersonFlow.emit(comparedPerson)
     }
 
+    suspend fun updatePersonImage(person: ComparedPerson, imageUrl: String) {
+        val newList = mutableListOf<ComparedPerson>()
+        newList.addAll(comparedPerson)
+        val index = newList.indexOf(person)
+        newList.remove(person)
+        if (index != -1) newList.add(index, person.copy(imageUrl = imageUrl))
+        else newList.add(person.copy(imageUrl = imageUrl))
+        comparedPerson = newList
+        _comparedPersonFlow.emit(comparedPerson)
+    }
+
     suspend fun addPerson(person: ComparedPerson) {
         val newList = mutableListOf<ComparedPerson>()
         newList.addAll(comparedPerson)
@@ -64,6 +75,17 @@ class HeightComparisonsRepository {
         val newList = mutableListOf<ComparedPerson>()
         newList.addAll(comparedPerson)
         newList.remove(person)
+        comparedPerson = newList
+        _comparedPersonFlow.emit(comparedPerson)
+    }
+
+    suspend fun removeImage(person: ComparedPerson) {
+        val newList = mutableListOf<ComparedPerson>()
+        newList.addAll(comparedPerson)
+        val index = newList.indexOf(person)
+        newList.remove(person)
+        if (index != -1) newList.add(index, person.copy(imageUrl = null))
+        else newList.add(person.copy(imageUrl = null))
         comparedPerson = newList
         _comparedPersonFlow.emit(comparedPerson)
     }

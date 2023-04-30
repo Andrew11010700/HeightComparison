@@ -1,14 +1,19 @@
 package ua.scootersoft.heightcomparison.screens.heightcomparisons
 
+import android.Manifest
+import android.app.Activity
 import android.net.Uri
+import android.os.Build
 import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
@@ -21,19 +26,63 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.core.app.ActivityCompat
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import coil.size.Size
+import com.theartofdev.edmodo.cropper.CropImage
+import ua.scootersoft.heightcomparison.utils.extensions.findActivity
 
 
 @Composable
 fun EditScreen(viewModel: HeightComparisonViewModel) {
     val comparedPeople by viewModel.comparedPeople.collectAsState()
-    Log.d("StateValue", "EditScreen: state = $comparedPeople")
     val checkedStates = remember { comparedPeople.map { mutableStateOf(it.isShowPerson) } }
+    val currentActivity = LocalContext.current.findActivity()
+
     LazyColumn(modifier = Modifier.padding(top = 20.dp, start = 24.dp, end = 24.dp)) {
         itemsIndexed(comparedPeople) { index, item ->
+            val resultReadStorageLauncher =
+                rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+                    if (result.resultCode == Activity.RESULT_OK) {
+                        val resultData = CropImage.getActivityResult(result.data)
+                        val resultUri = resultData.uri
+                        Log.d("ImageUri", "EditScreen: On result = $resultUri")
+
+                        if (resultUri != null)
+                            viewModel.updatePersonImage(item, resultUri.toString())
+                    }
+                }
+
+            val galleryPermission =
+                rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+                    when {
+                        granted -> {
+                            if (item.imageUrl.isNullOrBlank().not()) {
+                                resultReadStorageLauncher.launch(
+                                    CropImage.activity(Uri.parse(item.imageUrl))
+                                        .getIntent(currentActivity)
+                                )
+                            } else {
+                                resultReadStorageLauncher.launch(
+                                    CropImage
+                                        .activity()
+                                        .getIntent(currentActivity)
+                                )
+                            }
+                        }
+                        ActivityCompat.shouldShowRequestPermissionRationale(
+                            currentActivity,
+                            Manifest.permission.READ_EXTERNAL_STORAGE
+                        ).not() -> {
+                            Log.d("ImageClick", "Please select again permission")
+                        }
+                        else -> Log.d("ImageClick", "NewPerson: permission not granted")
+                    }
+                }
+
             checkedStates[index].value = item.isShowPerson
+
             val image = if (item.imageUrl.isNullOrBlank())
                 painterResource(id = item.defaultImage)
             else
@@ -48,7 +97,32 @@ fun EditScreen(viewModel: HeightComparisonViewModel) {
                 Image(
                     painter = image,
                     contentDescription = item.name,
-                    Modifier.size(height = 350.dp, width = 150.dp)
+                    Modifier
+                        .size(height = 350.dp, width = 150.dp)
+                        .clickable {
+                            Log.d("ImageUri", "EditScreen: uri = ${item.imageUrl}")
+                            if (item.imageUrl != null) {
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                    resultReadStorageLauncher.launch(
+                                        CropImage
+                                            .activity(Uri.parse(item.imageUrl))
+                                            .getIntent(currentActivity)
+                                    )
+                                } else {
+                                    galleryPermission.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
+                                }
+                            } else {
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                    resultReadStorageLauncher.launch(
+                                        CropImage
+                                            .activity()
+                                            .getIntent(currentActivity)
+                                    )
+                                } else {
+                                    galleryPermission.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
+                                }
+                            }
+                        }
                 )
                 Column {
                     TextField(
@@ -72,6 +146,11 @@ fun EditScreen(viewModel: HeightComparisonViewModel) {
                         viewModel.removePerson(item)
                     }) {
                         Text(text = "Remove this person")
+                    }
+                    Button(onClick = {
+                        viewModel.removeImage(item)
+                    }) {
+                        Text(text = "Remove image")
                     }
                 }
             }

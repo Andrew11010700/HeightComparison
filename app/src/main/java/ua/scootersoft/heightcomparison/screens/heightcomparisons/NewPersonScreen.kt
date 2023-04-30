@@ -111,7 +111,7 @@ fun NewPerson(
                     Modifier
                         .clickable {
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                                resultReadStorageLauncher.launch(CropImage.activity().getIntent(currentActivity))
+                                resultReadStorageLauncher.launch(CropImage.activity(Uri.parse(selectedUri.value)).getIntent(currentActivity))
                             } else {
                                 galleryPermission.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
                             }
@@ -119,6 +119,15 @@ fun NewPerson(
                 },
                 contentScale = ContentScale.FillBounds,
             )
+        }
+        if (selectedUri.value.isNullOrBlank().not()) {
+            item {
+                Button(onClick = {
+                    selectedUri.value = null
+                }) {
+                    Text(text = "Remove image")
+                }
+            }
         }
         item {
             TextField(

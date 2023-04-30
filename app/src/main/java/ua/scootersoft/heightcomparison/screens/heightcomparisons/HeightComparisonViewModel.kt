@@ -86,6 +86,12 @@ class HeightComparisonViewModel @Inject constructor(
         }
     }
 
+    fun updatePersonImage(person: ComparedPerson, imageUrl: String) {
+        viewModelScope.launch {
+            repository.updatePersonImage(person, imageUrl)
+        }
+    }
+
     fun addPerson(name: String, imageUrl: String?, heightCm: Int, gender: Gender) {
         viewModelScope.launch {
             val person = ComparedPerson(name = name, imageUrl = imageUrl, heightCm = heightCm, gender = gender)
@@ -96,6 +102,12 @@ class HeightComparisonViewModel @Inject constructor(
     fun removePerson(person: ComparedPerson) {
         viewModelScope.launch {
             repository.removePerson(person)
+        }
+    }
+
+    fun removeImage(person: ComparedPerson) {
+        viewModelScope.launch {
+            repository.removeImage(person)
         }
     }
 
