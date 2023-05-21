@@ -1,7 +1,6 @@
 package ua.scootersoft.heightcomparison.screens.heightcomparisons
 
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -108,6 +107,12 @@ class HeightComparisonViewModel @Inject constructor(
     fun removeImage(person: ComparedPerson) {
         viewModelScope.launch {
             repository.removeImage(person)
+        }
+    }
+
+    fun swapElements(currentPosition: Int, nextPosition: Int) {
+        viewModelScope.launch {
+            repository.swapPositions(currentPosition, nextPosition)
         }
     }
 

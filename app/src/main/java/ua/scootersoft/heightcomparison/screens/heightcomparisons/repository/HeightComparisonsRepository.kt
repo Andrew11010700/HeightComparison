@@ -3,7 +3,6 @@ package ua.scootersoft.heightcomparison.screens.heightcomparisons.repository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import ua.scootersoft.heightcomparison.R
 import ua.scootersoft.heightcomparison.screens.heightcomparisons.model.ComparedPerson
 import ua.scootersoft.heightcomparison.screens.heightcomparisons.model.Gender
 
@@ -86,6 +85,16 @@ class HeightComparisonsRepository {
         newList.remove(person)
         if (index != -1) newList.add(index, person.copy(imageUrl = null))
         else newList.add(person.copy(imageUrl = null))
+        comparedPerson = newList
+        _comparedPersonFlow.emit(comparedPerson)
+    }
+
+    suspend fun swapPositions(currentPosition: Int, nextPosition: Int) {
+        val newList = mutableListOf<ComparedPerson>()
+        newList.addAll(comparedPerson)
+        val tmp = newList[currentPosition]
+        newList[currentPosition] = newList[nextPosition]
+        newList[nextPosition] = tmp
         comparedPerson = newList
         _comparedPersonFlow.emit(comparedPerson)
     }
