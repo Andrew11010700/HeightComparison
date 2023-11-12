@@ -1,4 +1,4 @@
-package ua.scootersoft.heightcomparison.screens.heightcomparisons.model
+package ua.scootersoft.heightcomparison.model
 
 import ua.scootersoft.heightcomparison.R
 

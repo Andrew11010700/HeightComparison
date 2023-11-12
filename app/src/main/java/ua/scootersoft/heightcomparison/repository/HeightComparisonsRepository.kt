@@ -1,10 +1,10 @@
-package ua.scootersoft.heightcomparison.screens.heightcomparisons.repository
+package ua.scootersoft.heightcomparison.repository
 
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import ua.scootersoft.heightcomparison.screens.heightcomparisons.model.ComparedPerson
-import ua.scootersoft.heightcomparison.screens.heightcomparisons.model.Gender
+import ua.scootersoft.heightcomparison.model.ComparedPerson
+import ua.scootersoft.heightcomparison.model.Gender
 
 class HeightComparisonsRepository {
 

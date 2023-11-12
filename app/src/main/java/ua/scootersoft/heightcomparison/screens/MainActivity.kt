@@ -28,7 +28,7 @@ class MainActivity : ComponentActivity() {
             val navController = rememberNavController()
             val viewModel: HeightComparisonViewModel = hiltViewModel()
 
-            HeightComparisonTheme {
+            HeightComparisonTheme(dynamicColor = false) {
                 // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
@@ -39,13 +39,13 @@ class MainActivity : ComponentActivity() {
                        startDestination = "heightComparisonScreen"
                    ) {
                        composable("heightComparisonScreen") {
-                           HeightComparisonScreen(viewModel, navController)
+                           HeightComparisonScreen(navController = navController)
                        }
                        composable("editPersonScreen") {
-                           EditScreen(viewModel)
+                           EditScreen(viewModel, navController)
                        }
                        composable("addNewPerson") {
-                           NewPerson(viewModel, navController)
+                           NewPerson(navController = navController)
                        }
                    }
                 }

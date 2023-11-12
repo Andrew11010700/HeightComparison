@@ -8,10 +8,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import ua.scootersoft.heightcomparison.screens.heightcomparisons.model.ComparedPerson
-import ua.scootersoft.heightcomparison.screens.heightcomparisons.model.ComparedPersonView
-import ua.scootersoft.heightcomparison.screens.heightcomparisons.model.Gender
-import ua.scootersoft.heightcomparison.screens.heightcomparisons.repository.HeightComparisonsRepository
+import ua.scootersoft.heightcomparison.model.ComparedPerson
+import ua.scootersoft.heightcomparison.model.ComparedPersonView
+import ua.scootersoft.heightcomparison.repository.HeightComparisonsRepository
 import ua.scootersoft.heightcomparison.utils.Constants.TALLEST_DP
 import javax.inject.Inject
 
@@ -88,13 +87,6 @@ class HeightComparisonViewModel @Inject constructor(
     fun updatePersonImage(person: ComparedPerson, imageUrl: String) {
         viewModelScope.launch {
             repository.updatePersonImage(person, imageUrl)
-        }
-    }
-
-    fun addPerson(name: String, imageUrl: String?, heightCm: Int, gender: Gender) {
-        viewModelScope.launch {
-            val person = ComparedPerson(name = name, imageUrl = imageUrl, heightCm = heightCm, gender = gender)
-            repository.addPerson(person)
         }
     }
 

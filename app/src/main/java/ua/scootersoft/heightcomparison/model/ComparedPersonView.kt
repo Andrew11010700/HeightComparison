@@ -1,4 +1,4 @@
-package ua.scootersoft.heightcomparison.screens.heightcomparisons.model
+package ua.scootersoft.heightcomparison.model
 
 import androidx.compose.ui.unit.Dp
 
