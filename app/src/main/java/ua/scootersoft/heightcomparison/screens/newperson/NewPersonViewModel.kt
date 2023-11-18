@@ -3,6 +3,7 @@ package ua.scootersoft.heightcomparison.screens.newperson
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -32,7 +33,7 @@ class NewPersonViewModel @Inject constructor(
     val selectedUriState = _selectedUriState.asStateFlow()
 
     fun addPerson(name: String, imageUrl: String?, heightCm: Int, gender: Gender) {
-        viewModelScope.launch {
+        viewModelScope.launch(context = Dispatchers.IO) {
             val person = ComparedPerson(name = name, imageUrl = imageUrl, heightCm = heightCm, gender = gender)
             repository.addPerson(person)
         }

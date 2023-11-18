@@ -1,13 +1,21 @@
 package ua.scootersoft.heightcomparison.model
 
+import androidx.room.Entity
+import androidx.room.Ignore
+import androidx.room.PrimaryKey
 import ua.scootersoft.heightcomparison.R
+import ua.scootersoft.heightcomparison.utils.Constants
 
+@Entity(tableName = Constants.PEOPLE_TABLE)
 data class ComparedPerson(
-    val id: Long = 0,
-    val imageUrl: String? = null,
-    val gender: Gender,
-    val name: String = "",
-    val heightCm: Int = 170,
+    @PrimaryKey(autoGenerate = true)
+    var id: Long = 0,
+    var imageUrl: String? = null,
+    @Ignore
+    var gender: Gender = Gender.MAN,
+    var name: String = "",
+    var heightCm: Int = 170,
     var isShowPerson: Boolean = true,
-    val defaultImage: Int = if (gender == Gender.MAN) R.drawable.default_man else R.drawable.default_woman
+    var defaultImage: Int = if (gender == Gender.MAN) R.drawable.default_man else R.drawable.default_woman,
+    var sortIndex: Long = id
 )

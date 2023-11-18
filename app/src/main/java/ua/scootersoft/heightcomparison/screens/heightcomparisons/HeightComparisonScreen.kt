@@ -35,7 +35,15 @@ fun HeightComparisonScreen(
 ) {
     val scrollState = rememberScrollState()
     val comparedPeople by viewModel.comparedPeople.collectAsState()
-    val offsetsStates = remember { comparedPeople.map { mutableStateOf(Offset(0f, 0f)) } }
+
+    val offsetsStates = viewModel
+        .comparedPeople
+        .collectAsState()
+        .value
+        .filter { it.isShowPerson }
+        .map { mutableStateOf(Offset(0f, 0f)) }
+
+    Log.d("ComparedPerson", "HeightComparisonScreen: ${comparedPeople.size}, offsets = ${offsetsStates}, size = ${offsetsStates.size}")
     val lazyListState = rememberLazyListState()
     val currentIndexOffset = remember { mutableStateOf(0) }
 
@@ -76,11 +84,16 @@ fun HeightComparisonScreen(
         LazyRow(
             Modifier
                 .verticalScroll(scrollState)
-                .pointerInput(Unit) {
+                .pointerInput(offsetsStates) {
+                    Log.d("ComparedPerson", "POINTER INPUT")
                     detectDragGesturesAfterLongPress(
                         onDrag = { change, offset ->
                             change.consume()
                             val x = offset.x
+                            Log.d(
+                                "ComparedPerson",
+                                "DRAGGABLE: ${currentIndexOffset.value}, offsets = ${offsetsStates}, size = ${offsetsStates.size}"
+                            )
                             val currentOffset = offsetsStates[currentIndexOffset.value].value
                             offsetsStates[currentIndexOffset.value].value =
                                 currentOffset.copy(x = currentOffset.x + x)
@@ -103,7 +116,7 @@ fun HeightComparisonScreen(
                 .padding(top = 24.dp),
             state = lazyListState
         ) {
-            itemsIndexed(items = comparedPeople.filter { it.isShowPerson }) { index, item ->
+            itemsIndexed(items = comparedPeople.filter { it.isShowPerson }.sortedBy { it.sortIndex }) { index, item ->
                 val image = if (item.imageUrl.isNullOrBlank())
                     painterResource(id = item.defaultImage)
                 else

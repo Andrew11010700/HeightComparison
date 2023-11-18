@@ -43,7 +43,9 @@ fun EditScreen(
     navController: NavHostController
 ) {
     val comparedPeople by viewModel.comparedPeople.collectAsState()
-    val checkedStates = remember { comparedPeople.map { mutableStateOf(it.isShowPerson) } }
+    val checkedStates = viewModel.comparedPeople.collectAsState().value.map { mutableStateOf(it.isShowPerson) }
+
+    Log.d("ComparedPerson", "EditScreen: people size = ${comparedPeople}, checked states = $checkedStates, size = ${checkedStates.size} ")
     val currentActivity = LocalContext.current.findActivity()
 
     Column {
@@ -55,7 +57,7 @@ fun EditScreen(
             }
         )
         LazyColumn(modifier = Modifier.padding(start = 24.dp, end = 24.dp)) {
-            itemsIndexed(comparedPeople) { index, item ->
+            itemsIndexed(comparedPeople.sortedBy { it.sortIndex }) { index, item ->
                 val resultReadStorageLauncher =
                     rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
                         if (result.resultCode == Activity.RESULT_OK) {
@@ -154,6 +156,7 @@ fun EditScreen(
                         )
                         Checkbox(checked = checkedStates[index].value, onCheckedChange = {
                             item.isShowPerson = item.isShowPerson.not()
+                            viewModel.updatePerson(item)
                             checkedStates[index].value = item.isShowPerson
                         })
                         Button(onClick = {
